@@ -29,10 +29,13 @@ public class SerialMusic implements JMC {
         for(int i=0;i<12;i++){
             System.out.println(Arrays.toString(serialMatrix.getBaseRowByRowNumber(i)));
             phr.addNoteList(serialMatrix.getNotesByIndices(serialMatrix.getBaseRowByRowNumber(i)));
-            for (final Note note :
-                serialMatrix.getNotesByIndices(serialMatrix.getBaseRowByRowNumber(i))) {
-                System.out.println(note.getPitch());
-            }
+        }
+
+        System.out.println("Trennlinie");
+
+
+        for(int i=0;i<8;i++){
+            System.out.println(Arrays.toString(serialMatrix.getInverseBaseRowByRowNumber(i)));
         }
 
         p.add(phr);
