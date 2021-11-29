@@ -8,6 +8,7 @@ import jm.music.data.Part;
 import jm.music.data.Phrase;
 import jm.music.data.Score;
 import jm.util.Play;
+import jm.util.View;
 import jm.util.Write;
 
 import java.util.Arrays;
@@ -34,12 +35,13 @@ public class SerialMusic implements JMC {
         System.out.println("Trennlinie");
 
 
-        for(int i=0;i<8;i++){
+        for(int i=0;i<12;i++){
             System.out.println(Arrays.toString(serialMatrix.getInverseBaseRowByRowNumber(i)));
         }
 
         p.add(phr);
         s.addPart(p);
+        View.notation(s);
         Write.midi(s, "ChromaticScale.mid");
     }
 }

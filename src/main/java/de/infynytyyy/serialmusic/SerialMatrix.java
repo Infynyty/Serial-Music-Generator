@@ -2,8 +2,12 @@ package de.infynytyyy.serialmusic;
 
 import jm.JMC;
 import jm.music.data.Note;
+import jm.music.data.Phrase;
 import lombok.Getter;
 
+import javax.swing.JFormattedTextField;
+
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -131,5 +135,16 @@ public class SerialMatrix implements JMC {
 
     private int[] getOrderedBaseRows() {
         return null; // FIXME: 26.11.2021 Add
+    }
+
+    public Phrase getCompletePianoOnePhrase() {
+        final Phrase phrase = new Phrase();
+        for(int row = 0; row < MATRIX_SIZE; row++){
+            final Note[] notes = getNotesByIndices(getBaseRowByRowNumber(row));
+            for (int i = 0; i < notes.length; i++) {
+                final Note note = new Note();
+            }
+        }
+        return null;
     }
 }
