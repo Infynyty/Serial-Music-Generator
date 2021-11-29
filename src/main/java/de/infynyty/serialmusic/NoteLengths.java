@@ -1,7 +1,8 @@
-package de.infynytyyy.serialmusic;
+package de.infynyty.serialmusic;
 
 import jm.JMC;
 import jm.constants.Durations;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -19,5 +20,6 @@ public enum NoteLengths implements JMC {
     CROTCHET_PLUS_SIXTEENTH_DOTTED(Durations.CROTCHET + Durations.DOTTED_SIXTEENTH_NOTE),
     DOTTED_CROTCHET(Durations.DOTTED_CROTCHET)
     ;
-    final double noteLength;
+    @Getter
+    final private double noteLength;
 }

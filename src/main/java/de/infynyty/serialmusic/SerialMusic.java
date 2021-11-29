@@ -1,13 +1,9 @@
-package de.infynytyyy.serialmusic;
+package de.infynyty.serialmusic;
 
 import jm.JMC;
-import jm.audio.Instrument;
-import jm.constants.Volumes;
 import jm.music.data.Note;
 import jm.music.data.Part;
-import jm.music.data.Phrase;
 import jm.music.data.Score;
-import jm.util.Play;
 import jm.util.View;
 import jm.util.Write;
 
@@ -24,12 +20,10 @@ public class SerialMusic implements JMC {
         }
         Score s = new Score("JMDemo1 - Scale");
         Part p = new Part("Flute", FLUTE, 0);
-        Phrase phr = new Phrase("Chromatic Scale", 0.0);
 
         final SerialMatrix serialMatrix = new SerialMatrix(notes);
         for(int i=0;i<12;i++){
             System.out.println(Arrays.toString(serialMatrix.getBaseRowByRowNumber(i)));
-            phr.addNoteList(serialMatrix.getNotesByIndices(serialMatrix.getBaseRowByRowNumber(i)));
         }
 
         System.out.println("Trennlinie");
@@ -39,7 +33,7 @@ public class SerialMusic implements JMC {
             System.out.println(Arrays.toString(serialMatrix.getInverseBaseRowByRowNumber(i)));
         }
 
-        p.add(phr);
+        p.add(serialMatrix.getCompletePianoOnePhrase());
         s.addPart(p);
         View.notation(s);
         Write.midi(s, "ChromaticScale.mid");

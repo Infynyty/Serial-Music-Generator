@@ -1,13 +1,11 @@
-package de.infynytyyy.serialmusic;
+package de.infynyty.serialmusic;
 
 import jm.JMC;
 import jm.music.data.Note;
 import jm.music.data.Phrase;
 import lombok.Getter;
 
-import javax.swing.JFormattedTextField;
-
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -134,17 +132,63 @@ public class SerialMatrix implements JMC {
     }
 
     private int[] getOrderedBaseRows() {
-        return null; // FIXME: 26.11.2021 Add
+        return inversionMatrix[0];
+    }
+
+    private int[] getOrderedInverseBaseRows() {
+        return matrix[0];
+    }
+
+    private int[] getOrderedLengthRows(final int[][] matrix) {
+        final int[] reverseRow = new int[MATRIX_SIZE];
+        System.arraycopy(matrix[0], 0, reverseRow, 0, MATRIX_SIZE);
+        Collections.reverse(List.of(reverseRow));
+        return reverseRow;
+    }
+
+    private int[] getAllLengths() {
+        final int[] lengthRows = getOrderedLengthRows(matrix);
+        final int[] allLengths = new int[MATRIX_SIZE * MATRIX_SIZE];
+        for (int i = 0; i < lengthRows.length; i++) {
+            final int[] reverseRow = new int[MATRIX_SIZE];
+            System.arraycopy(matrix[0], 0, reverseRow, 0, MATRIX_SIZE);
+            Collections.reverse(List.of(reverseRow));
+            System.arraycopy(reverseRow, 0, allLengths, MATRIX_SIZE * i, reverseRow.length);
+        }
+        return allLengths;
+    }
+
+    private Note[] getAllOrderedNotes() {
+        final int[] orderedBaseRows = getOrderedBaseRows();
+        final int[] allNotes = new int[MATRIX_SIZE * MATRIX_SIZE];
+        for (int i = 0; i < orderedBaseRows.length; i++) {
+            System.arraycopy(getBaseRowByRowNumber(i), 0, allNotes, MATRIX_SIZE * i, getBaseRowByRowNumber(i).length);
+        }
+        return getNotesByIndices(allNotes);
+    }
+
+    private int[] getAllDynamics(final int[][] matrix) {
+        final int[] allDynamics = new int[MATRIX_SIZE];
+        for (int i = 0; i < MATRIX_SIZE; i++) {
+            allDynamics[i] = matrix[MATRIX_SIZE - i - 1][i];
+        }
+        return allDynamics;
     }
 
     public Phrase getCompletePianoOnePhrase() {
         final Phrase phrase = new Phrase();
-        for(int row = 0; row < MATRIX_SIZE; row++){
-            final Note[] notes = getNotesByIndices(getBaseRowByRowNumber(row));
-            for (int i = 0; i < notes.length; i++) {
-                final Note note = new Note();
-            }
+        final Note[] allNotes = getAllOrderedNotes();
+        final int[] allLengths = getAllLengths();
+        final int[] allDynamics = getAllDynamics(inversionMatrix);
+        System.out.println("All notes:" + allNotes.length);
+        System.out.println("All lengths:" + allLengths.length);
+        System.out.println("All dynamics:" + allDynamics.length);
+        for(int note = 0; note < (MATRIX_SIZE * MATRIX_SIZE); note++){
+            allNotes[note].setLength(NoteLengths.values()[allLengths[note]].getNoteLength());
+            allNotes[note].setDynamic(Dynamics.values()[allDynamics[Math.floorDiv(note, MATRIX_SIZE)]].getDynamic());
         }
-        return null;
+        phrase.addNoteList(allNotes);
+        System.out.println("Phrase size: " + phrase.size());
+        return phrase;
     }
 }

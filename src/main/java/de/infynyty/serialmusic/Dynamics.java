@@ -1,5 +1,6 @@
-package de.infynytyyy.serialmusic;
+package de.infynyty.serialmusic;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -17,5 +18,6 @@ public enum Dynamics {
     THREE_FORTE(jm.constants.Dynamics.FFF),
     FOUR_FORTE(jm.constants.Dynamics.FORTISSIMO + 5)
     ;
-    final int dynamic;
+    @Getter
+    final private int dynamic;
 }

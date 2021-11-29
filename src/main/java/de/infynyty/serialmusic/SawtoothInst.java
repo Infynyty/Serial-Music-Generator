@@ -1,4 +1,4 @@
-package de.infynytyyy.serialmusic;
+package de.infynyty.serialmusic;
 
 import jm.audio.Instrument;
 import jm.audio.io.SampleOut;
