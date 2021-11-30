@@ -1,9 +1,10 @@
 package de.infynyty.serialmusic;
 
 import jm.JMC;
+import jm.audio.Instrument;
 import jm.music.data.Note;
-import jm.music.data.Part;
 import jm.music.data.Score;
+import jm.util.Play;
 import jm.util.View;
 import jm.util.Write;
 
@@ -18,8 +19,6 @@ public class SerialMusic implements JMC {
             Note n = new Note(C4+i, CROTCHET);
             notes[i] = n;
         }
-        Score s = new Score("JMDemo1 - Scale");
-        Part p = new Part("Flute", FLUTE, 0);
 
         final SerialMatrix serialMatrix = new SerialMatrix(notes);
         for(int i=0;i<12;i++){
@@ -33,9 +32,8 @@ public class SerialMusic implements JMC {
             System.out.println(Arrays.toString(serialMatrix.getInverseBaseRowByRowNumber(i)));
         }
 
-        p.add(serialMatrix.getCompletePianoOnePhrase());
-        s.addPart(p);
-        View.notation(s);
-        Write.midi(s, "ChromaticScale.mid");
+        final Score score = serialMatrix.getCompletePianoOneScore();
+        View.notation(score);
+        Write.midi(score, "SerialMusic.mid");
     }
 }

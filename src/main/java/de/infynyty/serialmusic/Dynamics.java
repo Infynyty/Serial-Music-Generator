@@ -16,7 +16,7 @@ public enum Dynamics {
     FORTE(jm.constants.Dynamics.FORTE - 5),
     TWO_FORTE(jm.constants.Dynamics.FORTISSIMO),
     THREE_FORTE(jm.constants.Dynamics.FFF),
-    FOUR_FORTE(jm.constants.Dynamics.FORTISSIMO + 5)
+    FOUR_FORTE(jm.constants.Dynamics.FFF + 5)
     ;
     @Getter
     final private int dynamic;

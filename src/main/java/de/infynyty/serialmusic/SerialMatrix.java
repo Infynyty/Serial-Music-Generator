@@ -1,8 +1,12 @@
 package de.infynyty.serialmusic;
 
 import jm.JMC;
+import jm.constants.ProgramChanges;
+import jm.constants.Volumes;
 import jm.music.data.Note;
+import jm.music.data.Part;
 import jm.music.data.Phrase;
+import jm.music.data.Score;
 import lombok.Getter;
 
 import java.util.Collections;
@@ -55,10 +59,8 @@ public class SerialMatrix implements JMC {
     }
 
     /**
-     * Schritt 1: Grundton = 1. Ton der 1. Grundreihe
-     * Schritt 2: Umkehrung berechnen: Differenz zwischen größerem und kleineren Ton bilden
-     * Schritt 3: Wert drauf addieren
-     *
+     * Schritt 1: Grundton = 1. Ton der 1. Grundreihe Schritt 2: Umkehrung berechnen: Differenz zwischen größerem und
+     * kleineren Ton bilden Schritt 3: Wert drauf addieren
      */
     private void fillInversionMatrix() {
         for (int row = 0; row < MATRIX_SIZE; row++) {
@@ -158,6 +160,11 @@ public class SerialMatrix implements JMC {
         return allLengths;
     }
 
+    /**
+     * Returns all notes in the correct order according to the rules of serial music.
+     *
+     * @return All notes in the correct order.
+     */
     private Note[] getAllOrderedNotes() {
         final int[] orderedBaseRows = getOrderedBaseRows();
         final int[] allNotes = new int[MATRIX_SIZE * MATRIX_SIZE];
@@ -167,6 +174,13 @@ public class SerialMatrix implements JMC {
         return getNotesByIndices(allNotes);
     }
 
+    /**
+     * Returns a list of all dynamics according to the rules of serial music.
+     *
+     * @param matrix The matrix that should be read for the values.
+     *
+     * @return A list of all indices for the dynamics.
+     */
     private int[] getAllDynamics(final int[][] matrix) {
         final int[] allDynamics = new int[MATRIX_SIZE];
         for (int i = 0; i < MATRIX_SIZE; i++) {
@@ -175,20 +189,29 @@ public class SerialMatrix implements JMC {
         return allDynamics;
     }
 
-    public Phrase getCompletePianoOnePhrase() {
-        final Phrase phrase = new Phrase();
+    /**
+     * Returns a complete phrase for piano one. This phrase contains all notes with their correct length and dynamic.
+     *
+     * @return A phrase for piano one with all notes.
+     */
+    public Score getCompletePianoOneScore() {
+        final Part part = new Part(ProgramChanges.PIANO, 0);
+        final Score score = new Score();
         final Note[] allNotes = getAllOrderedNotes();
         final int[] allLengths = getAllLengths();
-        final int[] allDynamics = getAllDynamics(inversionMatrix);
-        System.out.println("All notes:" + allNotes.length);
-        System.out.println("All lengths:" + allLengths.length);
-        System.out.println("All dynamics:" + allDynamics.length);
-        for(int note = 0; note < (MATRIX_SIZE * MATRIX_SIZE); note++){
-            allNotes[note].setLength(NoteLengths.values()[allLengths[note]].getNoteLength());
-            allNotes[note].setDynamic(Dynamics.values()[allDynamics[Math.floorDiv(note, MATRIX_SIZE)]].getDynamic());
+        final int[] allDynamics = getAllDynamics(matrix);
+        for (int phraseNumber = 0; phraseNumber < MATRIX_SIZE; phraseNumber++) {
+            final Phrase phrase = new Phrase();
+            for (int note = 0; note < MATRIX_SIZE; note++) {
+                allNotes[phraseNumber * MATRIX_SIZE + note].setLength(NoteLengths.values()[allLengths[phraseNumber * MATRIX_SIZE + note]].getNoteLength());
+
+                phrase.addNote(allNotes[phraseNumber * MATRIX_SIZE + note]);
+            }
+            phrase.setDynamic(Dynamics.values()[allDynamics[phraseNumber]].getDynamic());
+            part.setTitle("Phrase " + phraseNumber);
+            part.appendPhrase(phrase);
         }
-        phrase.addNoteList(allNotes);
-        System.out.println("Phrase size: " + phrase.size());
-        return phrase;
+        score.addPart(part);
+        return score;
     }
 }
