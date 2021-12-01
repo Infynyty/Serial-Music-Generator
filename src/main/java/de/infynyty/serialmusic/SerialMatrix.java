@@ -22,7 +22,6 @@ public class SerialMatrix implements JMC {
     final private Note[] baseNotes;
     @Getter
     final private int[][] matrix = new int[MATRIX_SIZE][MATRIX_SIZE];
-    @Getter
     final private int[][] inversionMatrix = new int[MATRIX_SIZE][MATRIX_SIZE];
 
     public SerialMatrix(final Note[] baseNotes) {
@@ -73,6 +72,12 @@ public class SerialMatrix implements JMC {
         }
     }
 
+    /**
+     * Returns the inverted pitch of a note relative to a base note pitch.
+     * @param baseNotePitch The base note.
+     * @param relativeNotePitch The note pitch that should be inverted.
+     * @return The inverted pitch.
+     */
     private int getNoteInversionPitch(final int baseNotePitch, final int relativeNotePitch) {
         final int difference = baseNotePitch - relativeNotePitch;
         return baseNotePitch + difference;
@@ -96,7 +101,7 @@ public class SerialMatrix implements JMC {
      *
      * @return A list of base notes.
      */
-    public Note[] getNotesByIndices(final int[] indices) {
+    private Note[] getNotesByIndices(final int[] indices) {
         final Note[] notes = new Note[indices.length];
         for (int i = 0; i < indices.length; i++) {
             notes[i] = getNoteByIndex(indices[i]);
@@ -115,40 +120,82 @@ public class SerialMatrix implements JMC {
     }
 
     /**
+     * Returns a complete phrase for piano one. This phrase contains all notes with their correct length and dynamic.
+     *
+     * @return A phrase for piano one with all notes.
+     */
+    public Score getCompleteScore() {
+        final Part partOne = new Part(ProgramChanges.PIANO, 0);
+        final Part partTwo = new Part(ProgramChanges.PIANO, 1);
+        final Score score = new Score();
+        final Note[] allNotes = getAllOrderedNotes(matrix);
+        final int[] allLengths = getAllLengths(matrix);
+        final int[] allDynamics = getAllDynamics(matrix);
+        final Note[] allPianoTwoNotes = getAllOrderedNotes(inversionMatrix);
+        final int[] allPianoTwoLengths = getAllLengths(inversionMatrix);
+        final int[] allPianoTwoDynamics = getAllDynamics(inversionMatrix);
+        for (int phraseNumber = 0; phraseNumber < MATRIX_SIZE; phraseNumber++) {
+            final Phrase phraseOne = new Phrase();
+            final Phrase phraseTwo = new Phrase();
+            for (int note = 0; note < MATRIX_SIZE; note++) {
+                allNotes[phraseNumber * MATRIX_SIZE + note].setLength(NoteLengths.values()[allLengths[phraseNumber * MATRIX_SIZE + note]].getNoteLength());
+                allPianoTwoNotes[phraseNumber * MATRIX_SIZE + note].setLength(NoteLengths.values()[allPianoTwoLengths[phraseNumber * MATRIX_SIZE + note]].getNoteLength());
+
+                phraseOne.addNote(allNotes[phraseNumber * MATRIX_SIZE + note]);
+                phraseTwo.addNote(allPianoTwoNotes[phraseNumber * MATRIX_SIZE + note]);
+            }
+            phraseTwo.setDynamic(Dynamics.values()[allPianoTwoDynamics[phraseNumber]].getDynamic());
+            phraseOne.setDynamic(Dynamics.values()[allDynamics[phraseNumber]].getDynamic());
+            partOne.appendPhrase(phraseOne);
+            partTwo.appendPhrase(phraseTwo);
+        }
+        score.addPart(partOne);
+        score.addPart(partTwo);
+        return score;
+    }
+
+    /**
+     * Returns all notes in the correct order according to the rules of serial music.
+     *
+     * @return All notes in the correct order.
+     */
+    private Note[] getAllOrderedNotes(final int[][] matrix) {
+        final int[] orderedBaseRows = getOrderedBaseRows(matrix);
+        final int[] allNotes = new int[MATRIX_SIZE * MATRIX_SIZE];
+        for (int i = 0; i < orderedBaseRows.length; i++) {
+            System.arraycopy(getBaseRowByRowNumber(orderedBaseRows[i], matrix), 0, allNotes, MATRIX_SIZE * i, MATRIX_SIZE);
+        }
+        return getNotesByIndices(allNotes);
+    }
+
+    /**
+     * Returns the ordered base rows for a matrix. They are used to set the order of the different rows of note pitches.
+     * @param matrix The matrix for which the ordered base rows should be returned.
+     * @return The rows indices.
+     */
+    private int[] getOrderedBaseRows(final int[][] matrix) {
+        return getInversionMatrix(matrix)[0];
+    }
+
+    /**
      * Returns a new array containing the indices of a given row.
      *
      * @param row The row.
      *
      * @return A new array with all indices of the row.
      */
-    public int[] getBaseRowByRowNumber(final int row) {
+    public int[] getBaseRowByRowNumber(final int row, final int[][] matrix) {
         final int[] baseRowIndices = new int[MATRIX_SIZE];
         System.arraycopy(matrix[row], 0, baseRowIndices, 0, MATRIX_SIZE);
         return baseRowIndices;
     }
 
-    public int[] getInverseBaseRowByRowNumber(final int row) {
-        final int[] baseRowIndices = new int[MATRIX_SIZE];
-        System.arraycopy(inversionMatrix[row], 0, baseRowIndices, 0, MATRIX_SIZE);
-        return baseRowIndices;
-    }
-
-    private int[] getOrderedBaseRows() {
-        return inversionMatrix[0];
-    }
-
-    private int[] getOrderedInverseBaseRows() {
-        return matrix[0];
-    }
-
-    private int[] getOrderedLengthRows(final int[][] matrix) {
-        final int[] reverseRow = new int[MATRIX_SIZE];
-        System.arraycopy(matrix[0], 0, reverseRow, 0, MATRIX_SIZE);
-        Collections.reverse(List.of(reverseRow));
-        return reverseRow;
-    }
-
-    private int[] getAllLengths() {
+    /**
+     * Returns lengths for each note.
+     * @param matrix The matrix for which the lengths should be computed.
+     * @return Indices for each length.
+     */
+    private int[] getAllLengths(final int[][] matrix) {
         final int[] lengthRows = getOrderedLengthRows(matrix);
         final int[] allLengths = new int[MATRIX_SIZE * MATRIX_SIZE];
         for (int i = 0; i < lengthRows.length; i++) {
@@ -161,17 +208,25 @@ public class SerialMatrix implements JMC {
     }
 
     /**
-     * Returns all notes in the correct order according to the rules of serial music.
-     *
-     * @return All notes in the correct order.
+     * Returns the ordered length rows for a matrix.
+     * @param matrix The matrix for which the rows should be computed.
+     *               (This is always the inverse of the matrix that will actually be used in the method.
+     * @return The indices of the rows.
      */
-    private Note[] getAllOrderedNotes() {
-        final int[] orderedBaseRows = getOrderedBaseRows();
-        final int[] allNotes = new int[MATRIX_SIZE * MATRIX_SIZE];
-        for (int i = 0; i < orderedBaseRows.length; i++) {
-            System.arraycopy(getBaseRowByRowNumber(i), 0, allNotes, MATRIX_SIZE * i, getBaseRowByRowNumber(i).length);
-        }
-        return getNotesByIndices(allNotes);
+    private int[] getOrderedLengthRows(final int[][] matrix) {
+        final int[] reverseRow = new int[MATRIX_SIZE];
+        System.arraycopy(matrix[0], 0, reverseRow, 0, MATRIX_SIZE);
+        Collections.reverse(List.of(reverseRow));
+        return reverseRow;
+    }
+
+    /**
+     * Returns the inversion matrix (musically, not mathematically).
+     * @param matrix The matrix that should be inverted.
+     * @return The inversion matrix.
+     */
+    private int[][] getInversionMatrix(final int[][] matrix) {
+        return matrix == this.matrix ? inversionMatrix : matrix;
     }
 
     /**
@@ -187,31 +242,5 @@ public class SerialMatrix implements JMC {
             allDynamics[i] = matrix[MATRIX_SIZE - i - 1][i];
         }
         return allDynamics;
-    }
-
-    /**
-     * Returns a complete phrase for piano one. This phrase contains all notes with their correct length and dynamic.
-     *
-     * @return A phrase for piano one with all notes.
-     */
-    public Score getCompletePianoOneScore() {
-        final Part part = new Part(ProgramChanges.PIANO, 0);
-        final Score score = new Score();
-        final Note[] allNotes = getAllOrderedNotes();
-        final int[] allLengths = getAllLengths();
-        final int[] allDynamics = getAllDynamics(matrix);
-        for (int phraseNumber = 0; phraseNumber < MATRIX_SIZE; phraseNumber++) {
-            final Phrase phrase = new Phrase();
-            for (int note = 0; note < MATRIX_SIZE; note++) {
-                allNotes[phraseNumber * MATRIX_SIZE + note].setLength(NoteLengths.values()[allLengths[phraseNumber * MATRIX_SIZE + note]].getNoteLength());
-
-                phrase.addNote(allNotes[phraseNumber * MATRIX_SIZE + note]);
-            }
-            phrase.setDynamic(Dynamics.values()[allDynamics[phraseNumber]].getDynamic());
-            part.setTitle("Phrase " + phraseNumber);
-            part.appendPhrase(phrase);
-        }
-        score.addPart(part);
-        return score;
     }
 }

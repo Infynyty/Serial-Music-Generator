@@ -1,14 +1,10 @@
 package de.infynyty.serialmusic;
 
 import jm.JMC;
-import jm.audio.Instrument;
 import jm.music.data.Note;
 import jm.music.data.Score;
-import jm.util.Play;
 import jm.util.View;
 import jm.util.Write;
-
-import java.util.Arrays;
 
 public class SerialMusic implements JMC {
 
@@ -21,18 +17,18 @@ public class SerialMusic implements JMC {
         }
 
         final SerialMatrix serialMatrix = new SerialMatrix(notes);
-        for(int i=0;i<12;i++){
-            System.out.println(Arrays.toString(serialMatrix.getBaseRowByRowNumber(i)));
-        }
+//        for(int i=0;i<12;i++){
+//            System.out.println(Arrays.toString(serialMatrix.getBaseRowByRowNumber(i)));
+//        }
+//
+//        System.out.println("Trennlinie");
+//
+//
+//        for(int i=0;i<12;i++){
+//            System.out.println(Arrays.toString(serialMatrix.getInverseBaseRowByRowNumber(i)));
+//        }
 
-        System.out.println("Trennlinie");
-
-
-        for(int i=0;i<12;i++){
-            System.out.println(Arrays.toString(serialMatrix.getInverseBaseRowByRowNumber(i)));
-        }
-
-        final Score score = serialMatrix.getCompletePianoOneScore();
+        final Score score = serialMatrix.getCompleteScore();
         View.notation(score);
         Write.midi(score, "SerialMusic.mid");
     }
